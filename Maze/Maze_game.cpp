@@ -265,7 +265,10 @@ public:
 };
 int main(int argc, char** argv) {
 	Maze game;
-	game.initial(30, 30);
+	cout << "输入迷宫大小(高度 宽度)\n";
+	int size_x, size_y;
+	cin >> size_x >> size_y;
+	game.initial(size_x / 2, size_y / 2);
 	game.play();
 	//game.show("board.txt");
 	return 0;
