@@ -177,7 +177,7 @@ public:
 		}
 	}
 	void show(string filename) {
-		ofstream file(filename, ios::out);
+		ofstream file(filename.c_str(), std::ios::out);
 		for (unsigned int i = 0; i < this->SIZE_X * 2 + 1; ++i) {
 			for (unsigned int j = 0; j < this->SIZE_Y * 2 + 1; ++j) {
 				file << (this->board[i][j] ? "¡¡" : "¡ö");
@@ -219,9 +219,9 @@ public:
 		string buffer;
 		this->setBoard();
 		FillConsoleOutputAttribute(handle_buf, FOREGROUND_BLUE | FOREGROUND_GREEN, 3600, { 0,0 }, &bytes);
-		for (int i = max(0, this->BOARD_TOP); i <= min(this->SIZE_X * 2, this->BOARD_BOTTOM); ++i) {
+		for (int i = max(0, this->BOARD_TOP); i <= min((int)this->SIZE_X * 2, this->BOARD_BOTTOM); ++i) {
 			buffer.clear();
-			for (int j = max(0, this->BOARD_LEFT); j <= min(this->SIZE_Y * 2, this->BOARD_RIGHT); ++j) {
+			for (int j = max(0, this->BOARD_LEFT); j <= min((int)this->SIZE_Y * 2, this->BOARD_RIGHT); ++j) {
 				buffer += (this->board[i][j] ? "¡¡" : "¡ö");
 			}
 			while (buffer.size() < 120) {
