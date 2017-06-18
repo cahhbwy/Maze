@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Maze_create.cpp">
+    <ClCompile Include="Maze_game.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
