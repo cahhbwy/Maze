@@ -303,7 +303,7 @@ private:
 		while (!leaves.empty()) {
 			this->growth();
 		}
-		int k = this->SIZE_X *this->SIZE_Y / 50;
+		int k = this->SIZE_X *this->SIZE_Y / 100;
 		while (--k > 0) {
 			int x = rand() % (this->SIZE_X - 2) + 1, y = rand() % (this->SIZE_Y - 2) + 1;
 			this->board[x][y] = true;
