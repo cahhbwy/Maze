@@ -14,80 +14,70 @@ typedef struct Point {
 }Point;
 class Maze {
 private:
-	vector<vector<bool> > board;
-	unsigned int SIZE_X, SIZE_Y;
-	unsigned int IN_X, IN_Y, OUT_X, OUT_Y;
-	vector<Point> leaves;
-	Point player = Point(0, 0);
-	int BOARD_LEFT, BOARD_RIGHT, BOARD_TOP, BOARD_BOTTOM;
+	vector<vector<bool> > board;	//迷宫布局
+	unsigned int SIZE_X, SIZE_Y;	//迷宫尺寸，包括外墙的大小，鉴于墙体厚度和道路宽度相同，尺寸为奇数，至少为3
+	unsigned int IN_X, IN_Y, OUT_X, OUT_Y;		//入口和出口位置
+	vector<Point> leaves;			//生成迷宫过程使用的记录叶子结点的vector
+	Point player = Point(0, 0);		//玩家所在位置
+	// mode con:cols=120 lines=45	//宽60个中文字符，高45个中文字符
+	int BOARD_LEFT, BOARD_RIGHT, BOARD_TOP, BOARD_BOTTOM;	//画面显示的边界
 
 	bool set_door(unsigned int x, unsigned int y, bool flag) {
 		if (x == 0) {
-			this->board[0][y * 2 + 1] = true;
-			this->setStatus(x, y, flag);
+			this->board[0][y] = true;
+			this->board[1][y] = flag;
 			if (flag) {
-				player.x = 0;
-				player.y = y * 2 + 1;
+				leaves.push_back(Point(1, y));
 			}
 			return true;
 		} else if (x == SIZE_X - 1) {
-			this->board[SIZE_X * 2][y * 2 + 1] = true;
-			this->setStatus(x, y, flag);
+			this->board[x][y] = true;
+			this->board[x - 1][y] = flag;
 			if (flag) {
-				player.x = SIZE_X * 2;
-				player.y = y * 2 + 1;
+				leaves.push_back(Point(x - 1, y));
 			}
 			return true;
 		}
 		if (y == 0) {
-			this->board[x * 2 + 1][0] = true;
-			this->setStatus(x, y, flag);
+			this->board[x][0] = true;
+			this->board[x][1] = flag;
 			if (flag) {
-				player.x = x * 2 + 1;
-				player.y = 0;
+				leaves.push_back(Point(x, 1));
 			}
 			return true;
 		} else if (y == SIZE_Y - 1) {
-			this->board[x * 2 + 1][SIZE_Y * 2] = true;
-			this->setStatus(x, y, flag);
+			this->board[x][y] = true;
+			this->board[x][y - 1] = flag;
 			if (flag) {
-				player.x = x * 2 + 1;
-				player.y = SIZE_Y * 2;
+				leaves.push_back(Point(x, y - 1));
 			}
 			return true;
 		}
 		return false;
-
-	}
-	void setStatus(unsigned int x, unsigned int y, bool flag) {
-		this->board[x * 2 + 1][y * 2 + 1] = flag;
-	}
-	bool getStatus(unsigned int x, unsigned int y) {
-		return this->board[x * 2 + 1][y * 2 + 1];
 	}
 	void setBoard() {
-		if (this->SIZE_X >= 15) {
-			if (this->player.x < 15) {
+		if (this->SIZE_X > 45) {
+			if (this->player.x < 22) {
 				this->BOARD_TOP = 0;
-				this->BOARD_BOTTOM = 29;
-			} else if (this->player.x > this->SIZE_X * 2 - 15) {
-				this->BOARD_BOTTOM = SIZE_X * 2;
-				this->BOARD_TOP = SIZE_X * 2 - 29;
+				this->BOARD_BOTTOM = 44;
+			} else if (this->player.x > this->SIZE_X - 23) {
+				this->BOARD_TOP = this->SIZE_X - 45;
+				this->BOARD_BOTTOM = this->SIZE_X - 1;
 			} else {
-				this->BOARD_TOP = this->player.x - 15;
-				this->BOARD_BOTTOM = this->player.x + 14;
+				this->BOARD_TOP = this->player.x - 22;
+				this->BOARD_BOTTOM = this->player.x + 22;
 			}
 		} else {
 			this->BOARD_TOP = 0;
-			this->BOARD_BOTTOM = 30;
+			this->BOARD_BOTTOM = 44;
 		}
-		if (this->SIZE_Y >= 30) {
+		if (this->SIZE_Y > 60) {
 			if (this->player.y < 30) {
 				this->BOARD_LEFT = 0;
 				this->BOARD_RIGHT = 59;
-			} else if (this->player.y > this->SIZE_Y * 2 - 30) {
-				this->BOARD_RIGHT = SIZE_Y * 2;
-				this->BOARD_LEFT = SIZE_Y * 2 - 59;
+			} else if (this->player.y > this->SIZE_Y - 30) {
+				this->BOARD_LEFT = this->SIZE_Y - 60;
+				this->BOARD_RIGHT = this->SIZE_Y - 1;
 			} else {
 				this->BOARD_LEFT = this->player.y - 30;
 				this->BOARD_RIGHT = this->player.y + 29;
@@ -108,17 +98,17 @@ private:
 			index = rand() % this->leaves.size();
 			x = this->leaves[index].x;
 			y = this->leaves[index].y;
-			if (x > 0 && !this->getStatus(x - 1, y)) {
-				nerbor.push_back(Point(x - 1, y));
+			if (x > 1 && !this->board[x - 2][y]) {
+				nerbor.push_back(Point(x - 2, y));
 			}
-			if (x < this->SIZE_X - 1 && !this->getStatus(x + 1, y)) {
-				nerbor.push_back(Point(x + 1, y));
+			if (x < this->SIZE_X - 2 && !this->board[x + 2][y]) {
+				nerbor.push_back(Point(x + 2, y));
 			}
-			if (y > 0 && !this->getStatus(x, y - 1)) {
-				nerbor.push_back(Point(x, y - 1));
+			if (y > 1 && !this->board[x][y - 2]) {
+				nerbor.push_back(Point(x, y - 2));
 			}
-			if (y < this->SIZE_Y - 1 && !this->getStatus(x, y + 1)) {
-				nerbor.push_back(Point(x, y + 1));
+			if (y < this->SIZE_Y - 2 && !this->board[x][y + 2]) {
+				nerbor.push_back(Point(x, y + 2));
 			}
 			if (nerbor.empty()) {
 				leaves.erase(leaves.begin() + index);
@@ -126,16 +116,16 @@ private:
 		}
 		unsigned int index_nerbor = rand() % nerbor.size();
 		unsigned int nx = nerbor[index_nerbor].x, ny = nerbor[index_nerbor].y;
-		this->setStatus(nx, ny, true);
-		this->board[nx + x + 1][ny + y + 1] = true;
+		this->board[nx][ny] = true;
+		this->board[(nx + x) / 2][(ny + y) / 2] = true;
 		if (nerbor.size() == 1) {
 			leaves.erase(leaves.begin() + index);
 		}
 		leaves.push_back(Point(nx, ny));
 	}
-	void _draw(HANDLE handle_out, int x, int y, char *s) {
+	void _draw(HANDLE handle_out, int col, int row, char *s) {
 		DWORD bytes = 0;
-		COORD coord = { 2 * (y - this->BOARD_LEFT), x - this->BOARD_TOP };
+		COORD coord = { 2 * (row - this->BOARD_LEFT), col - this->BOARD_TOP };
 		if (strcmp(s, "●") == 0) {
 			FillConsoleOutputAttribute(handle_out, FOREGROUND_RED | FOREGROUND_INTENSITY, 2, coord, &bytes);
 		}
@@ -146,29 +136,38 @@ private:
 	}
 public:
 	bool initial() {
-		return this->initial(100, 100);
+		return this->initial(51, 51);
 	}
 	bool initial(unsigned int SIZE_X, unsigned int SIZE_Y) {
-		return this->initial(SIZE_X, SIZE_Y, 0, 0, SIZE_X - 1, SIZE_Y - 1);
+		SIZE_X = SIZE_X | 0x01;
+		SIZE_Y = SIZE_Y | 0x01;
+		return this->initial(SIZE_X, SIZE_Y, 0, 1, SIZE_X - 1, SIZE_Y - 2);
 	}
 	bool initial(unsigned int SIZE_X, unsigned int SIZE_Y, unsigned int IN_X, unsigned int IN_Y, unsigned int OUT_X, unsigned int OUT_Y) {
+		SIZE_X = SIZE_X | 0x01;
+		SIZE_Y = SIZE_Y | 0x01;
+		if (SIZE_X < 3 || SIZE_Y < 3) {
+			cout << "size must be larger than 3" << endl;
+			return false;
+		}
 		this->SIZE_X = SIZE_X;
 		this->SIZE_Y = SIZE_Y;
 		this->IN_X = IN_X;
 		this->IN_Y = IN_Y;
 		this->OUT_X = OUT_X;
 		this->OUT_Y = OUT_Y;
-		this->board.resize(SIZE_X * 2 + 1);
-		for (unsigned int i = 0; i < SIZE_X * 2 + 1; ++i) {
-			this->board[i].assign(SIZE_Y * 2 + 1, false);
+		this->board.resize(SIZE_X);
+		for (unsigned int i = 0; i < SIZE_X; ++i) {
+			this->board[i].assign(SIZE_Y, false);
 		}
 		if (!(this->set_door(IN_X, IN_Y, true) && this->set_door(OUT_X, OUT_Y, false))) {
 			return false;
 		}
-		leaves.push_back(Point(IN_X, IN_Y));
+		this->player.x = IN_X;
+		this->player.y = IN_Y;
 		srand((unsigned int)time(NULL));
 		this->generate();
-		system("mode con:cols=120 lines=30");
+		system("mode con:cols=120 lines=45");
 		return true;
 	}
 	void generate() {
@@ -178,8 +177,8 @@ public:
 	}
 	void show(string filename) {
 		ofstream file(filename.c_str(), std::ios::out);
-		for (unsigned int i = 0; i < this->SIZE_X * 2 + 1; ++i) {
-			for (unsigned int j = 0; j < this->SIZE_Y * 2 + 1; ++j) {
+		for (unsigned int i = 0; i < this->SIZE_X; ++i) {
+			for (unsigned int j = 0; j < this->SIZE_Y; ++j) {
 				file << (this->board[i][j] ? "　" : "■");
 			}
 			file << endl;
@@ -218,10 +217,10 @@ public:
 		DWORD bytes = 0;
 		string buffer;
 		this->setBoard();
-		FillConsoleOutputAttribute(handle_buf, FOREGROUND_BLUE | FOREGROUND_GREEN, 3600, { 0,0 }, &bytes);
-		for (int i = max(0, this->BOARD_TOP); i <= min((int)this->SIZE_X * 2, this->BOARD_BOTTOM); ++i) {
+		FillConsoleOutputAttribute(handle_buf, FOREGROUND_BLUE | FOREGROUND_GREEN, 5400, { 0,0 }, &bytes);
+		for (int i = max(0, this->BOARD_TOP); i <= min((int)this->SIZE_X - 1, this->BOARD_BOTTOM); ++i) {
 			buffer.clear();
-			for (int j = max(0, this->BOARD_LEFT); j <= min((int)this->SIZE_Y * 2, this->BOARD_RIGHT); ++j) {
+			for (int j = max(0, this->BOARD_LEFT); j <= min((int)this->SIZE_Y - 1, this->BOARD_RIGHT); ++j) {
 				buffer += (this->board[i][j] ? "　" : "■");
 			}
 			while (buffer.size() < 120) {
@@ -239,10 +238,22 @@ public:
 			switch (ch) {
 				case 0xE0:
 					switch (ch = getch()) {
-						case 72:if (this->player.x > 0 && this->board[this->player.x - 1][this->player.y])--this->player.x; break;
-						case 80:if (this->player.x < this->SIZE_X * 2 && this->board[this->player.x + 1][this->player.y])++this->player.x; break;
-						case 75:if (this->player.y > 0 && this->board[this->player.x][this->player.y - 1])--this->player.y; break;
-						case 77:if (this->player.y < this->SIZE_Y * 2 && this->board[this->player.x][this->player.y + 1])++this->player.y; break;
+						case 72:
+							if (this->player.x > 0 && this->board[this->player.x - 1][this->player.y])
+								--this->player.x;
+							break;
+						case 80:
+							if (this->player.x < this->SIZE_X - 1 && this->board[this->player.x + 1][this->player.y])
+								++this->player.x;
+							break;
+						case 75:
+							if (this->player.y > 0 && this->board[this->player.x][this->player.y - 1])
+								--this->player.y;
+							break;
+						case 77:
+							if (this->player.y < this->SIZE_Y - 1 && this->board[this->player.x][this->player.y + 1])
+								++this->player.y;
+							break;
 						default:
 							break;
 					}
@@ -268,7 +279,7 @@ int main(int argc, char** argv) {
 	cout << "输入迷宫大小(高度 宽度)\n";
 	int size_x, size_y;
 	cin >> size_x >> size_y;
-	game.initial(size_x / 2, size_y / 2);
+	game.initial(size_x, size_y);
 	game.play();
 	//game.show("board.txt");
 	return 0;
