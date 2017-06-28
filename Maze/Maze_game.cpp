@@ -8,15 +8,15 @@
 
 using namespace std;
 typedef struct Point {
-	unsigned int x;
-	unsigned int y;
-	Point(unsigned int x, unsigned int y) :x(x), y(y) {}
+	int x;
+	int y;
+	Point(int x, int y) :x(x), y(y) {}
 }Point;
 class Maze {
 private:
 	vector<vector<bool> > board;	//迷宫布局
-	unsigned int SIZE_X, SIZE_Y;	//迷宫尺寸，包括外墙的大小，鉴于墙体厚度和道路宽度相同，尺寸为奇数，至少为3
-	unsigned int IN_X, IN_Y, OUT_X, OUT_Y;		//入口和出口位置
+	int SIZE_X, SIZE_Y;	//迷宫尺寸，包括外墙的大小，鉴于墙体厚度和道路宽度相同，尺寸为奇数，至少为3
+	int IN_X, IN_Y, OUT_X, OUT_Y;		//入口和出口位置
 	vector<Point> leaves;			//生成迷宫过程使用的记录叶子结点的vector
 	Point player = Point(0, 0);		//玩家所在位置
 	vector<Point> path;
@@ -25,7 +25,7 @@ private:
 	HANDLE handle_buf0, handle_buf1;
 	int bufferIndex = 0;
 
-	bool set_door(unsigned int x, unsigned int y, bool flag) {
+	bool set_door(int x, int y, bool flag) {
 		if (x == 0) {
 			this->board[0][y] = true;
 			this->board[1][y] = flag;
@@ -91,9 +91,9 @@ private:
 		}
 	}
 	void growth() {
-		unsigned int index = -1;
+		int index = -1;
 		vector<Point> nerbor;
-		unsigned int x, y;
+		int x, y;
 		while (nerbor.empty()) {
 			if (leaves.empty()) {
 				return;
@@ -117,8 +117,8 @@ private:
 				leaves.erase(leaves.begin() + index);
 			}
 		}
-		unsigned int index_nerbor = rand() % nerbor.size();
-		unsigned int nx = nerbor[index_nerbor].x, ny = nerbor[index_nerbor].y;
+		int index_nerbor = rand() % nerbor.size();
+		int nx = nerbor[index_nerbor].x, ny = nerbor[index_nerbor].y;
 		this->board[nx][ny] = true;
 		this->board[(nx + x) / 2][(ny + y) / 2] = true;
 		if (nerbor.size() == 1) {
@@ -135,7 +135,7 @@ private:
 		WriteConsoleOutputCharacterA(handle_out, s, 2, coord, &bytes);
 	}
 	Point findNotExploredNerbor(Point p, vector<vector<bool> > flag) {
-		unsigned int x = p.x, y = p.y;
+		int x = p.x, y = p.y;
 		vector<Point> nerbor;
 		if (x > 0 && this->board[x - 1][y] && !flag[x - 1][y]) {
 			nerbor.push_back(Point(x - 1, y));
@@ -152,10 +152,10 @@ private:
 		if (nerbor.empty()) {
 			return Point(-1, -1);
 		}
-		double minDis = 1e10, dis;
-		unsigned int index = 0;
-		for (unsigned int i = 0; i < nerbor.size(); ++i) {
-			dis = sqrt((nerbor[i].x - this->player.x)*(nerbor[i].x - this->player.x) + (nerbor[i].y - this->player.y)*(nerbor[i].y - this->player.y));
+		int minDis = this->SIZE_X + this->SIZE_Y, dis;
+		int index = 0;
+		for (int i = 0; i < nerbor.size(); ++i) {
+			dis = abs(nerbor[i].x - this->player.x) + abs(nerbor[i].y - this->player.y);
 			if (dis < minDis) {
 				index = i;
 				minDis = dis;
@@ -165,7 +165,7 @@ private:
 	}
 	void help() {
 		vector<vector<bool> >flag(this->SIZE_X);
-		for (unsigned int i = 0; i < SIZE_X; ++i) {
+		for (int i = 0; i < SIZE_X; ++i) {
 			flag[i].assign(this->SIZE_Y, false);
 		}
 		this->path.clear();
@@ -195,7 +195,7 @@ private:
 	}
 	void drawPath(HANDLE handle_out) {
 		DWORD bytes = 0;
-		for (unsigned int i = 0; i < path.size() - 1; ++i) {
+		for (int i = 0; i < path.size() - 1; ++i) {
 			COORD coord = { 2 * (this->path[i].y - this->BORDER_LEFT), this->path[i].x - this->BORDER_TOP };
 			FillConsoleOutputAttribute(handle_out, FOREGROUND_GREEN | FOREGROUND_INTENSITY, 2, coord, &bytes);
 			WriteConsoleOutputCharacterA(handle_out, "◆", 2, coord, &bytes);
@@ -269,9 +269,9 @@ private:
 		string buffer;
 		this->setBorder();
 		FillConsoleOutputAttribute(handle_buf, FOREGROUND_BLUE | FOREGROUND_GREEN, 5400, { 0,0 }, &bytes);
-		for (int i = max(0, this->BORDER_TOP); i <= min((int)this->SIZE_X - 1, this->BORDER_BOTTOM); ++i) {
+		for (int i = max(0, this->BORDER_TOP); i <= min(this->SIZE_X - 1, this->BORDER_BOTTOM); ++i) {
 			buffer.clear();
-			for (int j = max(0, this->BORDER_LEFT); j <= min((int)this->SIZE_Y - 1, this->BORDER_RIGHT); ++j) {
+			for (int j = max(0, this->BORDER_LEFT); j <= min(this->SIZE_Y - 1, this->BORDER_RIGHT); ++j) {
 				buffer += (this->board[i][j] ? "　" : "■");
 			}
 			while (buffer.size() < 120) {
@@ -313,12 +313,12 @@ public:
 	bool initial() {
 		return this->initial(51, 51);
 	}
-	bool initial(unsigned int SIZE_X, unsigned int SIZE_Y) {
+	bool initial(int SIZE_X, int SIZE_Y) {
 		SIZE_X = SIZE_X | 0x01;
 		SIZE_Y = SIZE_Y | 0x01;
 		return this->initial(SIZE_X, SIZE_Y, 0, 1, SIZE_X - 1, SIZE_Y - 2);
 	}
-	bool initial(unsigned int SIZE_X, unsigned int SIZE_Y, unsigned int IN_X, unsigned int IN_Y, unsigned int OUT_X, unsigned int OUT_Y) {
+	bool initial(int SIZE_X, int SIZE_Y, int IN_X, int IN_Y, int OUT_X, int OUT_Y) {
 		SIZE_X = SIZE_X | 0x01;
 		SIZE_Y = SIZE_Y | 0x01;
 		if (SIZE_X < 3 || SIZE_Y < 3) {
@@ -332,7 +332,7 @@ public:
 		this->OUT_X = OUT_X;
 		this->OUT_Y = OUT_Y;
 		this->board.resize(SIZE_X);
-		for (unsigned int i = 0; i < SIZE_X; ++i) {
+		for (int i = 0; i < SIZE_X; ++i) {
 			this->board[i].assign(SIZE_Y, false);
 		}
 		if (!(this->set_door(OUT_X, OUT_Y, false) && this->set_door(IN_X, IN_Y, true))) {
@@ -340,14 +340,14 @@ public:
 		}
 		this->player.x = IN_X;
 		this->player.y = IN_Y;
-		srand((unsigned int)time(NULL));
+		srand((int)time(NULL));
 		this->generate();
 		return true;
 	}
 	void show(string filename) {
 		ofstream file(filename.c_str(), std::ios::out);
-		for (unsigned int i = 0; i < this->SIZE_X; ++i) {
-			for (unsigned int j = 0; j < this->SIZE_Y; ++j) {
+		for (int i = 0; i < this->SIZE_X; ++i) {
+			for (int j = 0; j < this->SIZE_Y; ++j) {
 				file << (this->board[i][j] ? "　" : "■");
 			}
 			file << endl;
