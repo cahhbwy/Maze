@@ -128,7 +128,7 @@ private:
 	}
 	void _draw(HANDLE handle_out, int col, int row, char *s) {
 		DWORD bytes = 0;
-		COORD coord = { 2 * (row - this->BORDER_LEFT), col - this->BORDER_TOP };
+		COORD coord = { (short)(2 * (row - this->BORDER_LEFT)), (short)(col - this->BORDER_TOP) };
 		if (strcmp(s, "¡ñ") == 0) {
 			FillConsoleOutputAttribute(handle_out, FOREGROUND_RED | FOREGROUND_INTENSITY, 2, coord, &bytes);
 		}
@@ -196,13 +196,13 @@ private:
 	void drawPath(HANDLE handle_out) {
 		DWORD bytes = 0;
 		for (int i = 0; i < path.size() - 1; ++i) {
-			COORD coord = { 2 * (this->path[i].y - this->BORDER_LEFT), this->path[i].x - this->BORDER_TOP };
+			COORD coord = { (short)(2 * (this->path[i].y - this->BORDER_LEFT)), (short)(this->path[i].x - this->BORDER_TOP) };
 			FillConsoleOutputAttribute(handle_out, FOREGROUND_GREEN | FOREGROUND_INTENSITY, 2, coord, &bytes);
 			WriteConsoleOutputCharacterA(handle_out, "¡ô", 2, coord, &bytes);
 		}
 	}
 	bool getControl() {
-		int ch = getch();
+		int ch = _getch();
 		if ((ch | 0x20) == 'h') {
 			help();
 		} else if ((ch | 0x20) == 'r') {
@@ -210,7 +210,7 @@ private:
 		} else if (ch != 0x1B) {
 			switch (ch) {
 				case 0xE0:
-					switch (ch = getch()) {
+					switch (ch = _getch()) {
 						case 72:
 							if (this->player.x > 0 && this->board[this->player.x - 1][this->player.y])
 								--this->player.x;
